@@ -6,12 +6,7 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-# =========================================================
-# MEJORA: USO DE FUNCIONES INTERNAS (LOCALS)
-# =========================================================
-# "locals" nos permite transformar datos antes de usarlos.
-# Aquí usamos la función 'lower()' para obligar a que todo sea minúsculas
-# y definimos etiquetas comunes para no repetirlas.
+
 locals {
  
   project_id = lower(var.project_name)
@@ -230,3 +225,4 @@ output "db_status" {
   # Función interna para mostrar mensaje según si se creó o no
   value = var.create_database ? "Base de datos creada en RDS" : "Base de datos NO creada (ahorro de costos)"
 }
+

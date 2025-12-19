@@ -21,14 +21,12 @@ locals {
   vpc_name = format("%s-%s-vpc", var.environment, local.project_id)
 }
 
-# ---------------------------------------------------------
-# RED
-# ---------------------------------------------------------
+
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   
-  # Usamos la función merge() para unir el Nombre con los tags comunes
+  
   tags = merge(local.common_tags, {
     Name = local.vpc_name
   })
@@ -66,9 +64,7 @@ resource "aws_route_table_association" "a" {
   route_table_id = aws_route_table.main.id
 }
 
-# ---------------------------------------------------------
-# SEGURIDAD
-# ---------------------------------------------------------
+
 resource "aws_security_group" "lb_sg" {
   name        = "${local.project_id}-lb-sg"
   description = "SG para Load Balancer"
@@ -115,9 +111,7 @@ resource "aws_security_group" "app_sg" {
   }
 }
 
-# ---------------------------------------------------------
-# LOAD BALANCER
-# ---------------------------------------------------------
+
 resource "aws_lb" "app_lb" {
   name               = "${local.project_id}-alb"
   internal           = false
@@ -150,9 +144,7 @@ resource "aws_lb_listener" "front_end" {
   }
 }
 
-# ---------------------------------------------------------
-# COMPUTO
-# ---------------------------------------------------------
+
 resource "aws_instance" "app_servers" {
   count = var.instance_count
 
@@ -182,11 +174,9 @@ resource "aws_lb_target_group_attachment" "attach" {
   port             = 80
 }
 
-# =========================================================
-# MEJORA: CONDICIONAL (Crear RDS solo si se pide)
-# =========================================================
+
 resource "aws_db_subnet_group" "rds_subnet_group" {
-  # CONDICIONAL TERNARIO: ¿create_database es true? Si sí, crea 1 recurso. Si no, crea 0.
+  
   count = var.create_database ? 1 : 0
   
   name       = "${local.project_id}-db-subnet-group"
@@ -194,7 +184,7 @@ resource "aws_db_subnet_group" "rds_subnet_group" {
 }
 
 resource "aws_db_instance" "default" {
-  # CONDICIONAL: Si count es 0, este bloque no se ejecuta
+  
   count = var.create_database ? 1 : 0
 
   allocated_storage    = 20
@@ -214,15 +204,14 @@ resource "aws_db_instance" "default" {
   tags = local.common_tags
 }
 
-# ---------------------------------------------------------
-# OUTPUTS
-# ---------------------------------------------------------
+
 output "alb_dns" {
   value = aws_lb.app_lb.dns_name
 }
 
 output "db_status" {
-  # Función interna para mostrar mensaje según si se creó o no
+ 
   value = var.create_database ? "Base de datos creada en RDS" : "Base de datos NO creada (ahorro de costos)"
 }
+
 
